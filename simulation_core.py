@@ -1,6 +1,3 @@
-# simulation_core.py
-# 合并了 data_structures, network_components, simulator_engine
-
 import uuid
 import heapq
 import traceback
@@ -11,20 +8,16 @@ from typing import List, Dict, Tuple, Optional, Deque, Callable, TYPE_CHECKING
 from collections import deque
 import config
 
-# 特殊端口号，表示数据包因链路断开而被重新注入节点进行重路由
 REROUTE_PORT = -2
 
-# --- Elastic Sketch 相关的数据结构 ---
 @dataclass
 class HeavyBucket:
-    """定义 Elastic Sketch 重部中的一个桶"""
     flow_key: Optional[Tuple[int, int]] = None
     positive_votes: int = 0
     negative_votes: int = 0
     flag: bool = False 
 
 class ElasticSketch:
-    """一个独立的 Elastic Sketch 实现"""
     def __init__(self):
         heavy_memory = config.ELASTIC_SKETCH_TOTAL_MEMORY_BYTES * config.ELASTIC_SKETCH_HEAVY_PART_RATIO
         light_memory = config.ELASTIC_SKETCH_TOTAL_MEMORY_BYTES - heavy_memory
@@ -77,15 +70,12 @@ class ElasticSketch:
                 return False
 
     def query(self, flow_key: Tuple[int, int]) -> int:
-        """查询一个流的估计频率 (新增)"""
         estimated_count = 0
         
-        # 1. 查询轻部
         light_index = self._hash_to_light(flow_key)
         if light_index != -1:
             estimated_count += self.light_part[light_index]
             
-        # 2. 查询重部
         heavy_index = self._hash_to_heavy(flow_key)
         if heavy_index != -1:
             bucket = self.heavy_part[heavy_index]
@@ -94,38 +84,30 @@ class ElasticSketch:
                 
         return estimated_count
 
-# --- Count-Min Sketch 相关的数据结构 ---
 class CountMinSketch:
-    """一个独立的 Count-Min Sketch 实现"""
     def __init__(self, memory_bytes=None, delta=None, counter_size_bytes=None, d=None):
-        # 允许通过参数或配置文件进行初始化
         mem_bytes = memory_bytes if memory_bytes is not None else config.CM_SKETCH_MEMORY_BYTES
         cnt_size = counter_size_bytes if counter_size_bytes is not None else config.CM_SKETCH_COUNTER_SIZE_BYTES
 
         if cnt_size <= 0:
-            raise ValueError("计数器大小必须为正数")
-
-        # 确定深度 'd'
+            raise ValueError("Counter size must be positive")
         if d is not None:
-            self.d = int(d)  # 使用提供的 d, 确保是整数
+            self.d = int(d)
         else:
             dlt = delta if delta is not None else config.CM_SKETCH_TARGET_DELTA
             if dlt <= 0 or dlt >= 1:
-                raise ValueError("Delta 必须在 (0, 1) 范围内")
-            self.d = int(math.ceil(math.log(1 / dlt)))  # 从 delta 计算并强制转换为整数
+                raise ValueError("Delta must be in the range (0, 1)")
+            self.d = int(math.ceil(math.log(1 / dlt)))
 
         if self.d <= 0:
-             self.d = 1 # 确保深度至少为1
+             self.d = 1
         
         total_counters = mem_bytes // cnt_size
-        # [修复] 显式地将 self.w 转换为整数，以防止 TypeError
         self.w = int(total_counters // self.d)
         if self.w <= 0:
-            raise ValueError(f"内存预算 {mem_bytes}B 对于目标 d={self.d} 来说太小了，无法分配至少一列。")
+            raise ValueError(f"Memory budget {mem_bytes}B is too small for the target d={self.d} to allocate at least one column.")
         
-        # effective_epsilon = math.e / self.w
-        # print(f"CM Sketch 初始化: 内存={mem_bytes}B -> d={self.d}, w={self.w} (生效的 epsilon ≈ {effective_epsilon:.6f})")
-        self.counts = [[0] * self.w for _ in range(self.d)] # self.w 现在保证是整数
+        self.counts = [[0] * self.w for _ in range(self.d)] # self.w is now guaranteed to be an integer
         self.hash_seeds = [random.randint(0, 2**32 - 1) for _ in range(self.d)]
 
     def _hash(self, flow_key: Tuple[int, int], seed_index: int) -> int:
@@ -143,20 +125,17 @@ class CountMinSketch:
             min_count = min(min_count, self.counts[i][col_index])
         return int(min_count)
 
-# --- [新增] BF+CM Sketch (FlowLiDAR) 相关的数据结构 ---
 class LazyBloomFilter:
-    """实现 FlowLiDAR 中的 Lazy Update Bloom Filter"""
     def __init__(self):
         bf_memory_bytes = config.BFCM_SKETCH_TOTAL_MEMORY_BYTES * config.BFCM_SKETCH_BF_RATIO
         self.k = config.BFCM_SKETCH_BF_HASH_FUNCTIONS
         if self.k <= 0:
-            raise ValueError("BFCM_SKETCH_BF_HASH_FUNCTIONS 必须为正")
+            raise ValueError("BFCM_SKETCH_BF_HASH_FUNCTIONS must be positive")
         
-        # 每个哈希函数对应一个位数组
         total_bits = int(bf_memory_bytes * 8)
         bits_per_array = total_bits // self.k
         if bits_per_array <= 0:
-            raise ValueError(f"为BF分配的内存不足以支持 {self.k} 个数组。")
+            raise ValueError(f"Memory allocated for BF is not sufficient to support {self.k} arrays.")
 
         self.m = bits_per_array
         self.arrays = [[0] * self.m for _ in range(self.k)]
@@ -166,33 +145,23 @@ class LazyBloomFilter:
         return hash((flow_key, self.hash_seeds[seed_index])) % self.m
 
     def check_and_set(self, flow_key: Tuple[int, int]) -> bool:
-        """
-        实现 Lazy Update 逻辑。
-        遍历 k 个哈希函数，如果找到一个未设置的位，则将其设置并返回 True。
-        这表示流被“新”检测到一次，其 FlowID 应被发送到控制平面。
-        如果所有 k 个位都已被设置，则返回 False。
-        """
         for i in range(self.k):
             index = self._hash(flow_key, i)
             if self.arrays[i][index] == 0:
                 self.arrays[i][index] = 1
-                return True # 新检测到一个位，返回True
-        return False # 所有位都已存在，返回False
+                return True
+        return False
 
 class BFCMSketch:
-    """FlowLiDAR 方法的整体数据结构，包含 LazyBF 和 CM Sketch"""
     def __init__(self):
-        print(f"BF+CM Sketch (FlowLiDAR) 初始化:")
-        print(f"  总内存: {config.BFCM_SKETCH_TOTAL_MEMORY_BYTES} 字节")
+        print(f"BF+CM Sketch (FlowLiDAR) initializing:")
+        print(f"  Total memory: {config.BFCM_SKETCH_TOTAL_MEMORY_BYTES} bytes")
         bf_mem = config.BFCM_SKETCH_TOTAL_MEMORY_BYTES * config.BFCM_SKETCH_BF_RATIO
         cm_mem = config.BFCM_SKETCH_TOTAL_MEMORY_BYTES - bf_mem
-        print(f"  - 布隆过滤器 (Lazy) 内存: {bf_mem} 字节, k={config.BFCM_SKETCH_BF_HASH_FUNCTIONS}")
-        print(f"  - CM Sketch 内存: {cm_mem} 字节, d={config.BFCM_SKETCH_CM_HASH_FUNCTIONS}")
+        print(f"  - Bloom Filter (Lazy) memory: {bf_mem} bytes, k={config.BFCM_SKETCH_BF_HASH_FUNCTIONS}")
+        print(f"  - CM Sketch memory: {cm_mem} bytes, d={config.BFCM_SKETCH_CM_HASH_FUNCTIONS}")
 
         self.lazy_bf = LazyBloomFilter()
-        
-        # 为内部的 CM Sketch 传递特定于此方法的配置
-        # 直接传递来自配置的深度 'd'
         self.cm_sketch = CountMinSketch(
             memory_bytes=cm_mem,
             counter_size_bytes=config.BFCM_SKETCH_COUNTER_SIZE_BYTES,
@@ -230,7 +199,7 @@ class FlowStats:
         if self.simulator_ref:
             latency = self.simulator_ref.now() - packet_creation_time
             self.latencies.append(latency)
-        else: print("警告: FlowStats 未关联 Simulator，无法记录延迟。")
+        else: print("Warning: FlowStats is not associated with a Simulator, cannot record latency.")
 
     def get_avg_latency(self) -> float:
         return sum(self.latencies) / len(self.latencies) if self.latencies else 0.0
@@ -240,7 +209,6 @@ class FlowStats:
 
 
 class Node:
-    """模拟网络节点 (卫星)"""
     def __init__(self, node_id: int):
         self.node_id = node_id
         self.interfaces: List[Dict] = []
@@ -249,42 +217,35 @@ class Node:
         self.detailed_port_rx_bytes: Dict[int, Dict[int, int]] = {}
         self.port_module_busy: Dict[int, List[bool]] = {}
         self.port_next_module_index: Dict[int, int] = {}
-        
-        # 方法 1: 原有测量方法
         self.flow_memory: Dict[Tuple[int, int], int] = {}
         
-        # 方法 2: Elastic Sketch 实例
         if config.ENABLE_ELASTIC_SKETCH:
             self.elastic_sketch = ElasticSketch()
         else:
             self.elastic_sketch = None
             
-        # 方法 3: Count-Min Sketch 实例
         if config.ENABLE_CM_SKETCH:
             self.cm_sketch = CountMinSketch()
         else:
             self.cm_sketch = None
             
-        # [新增] 方法 4: BF+CM Sketch (FlowLiDAR) 实例
         if config.ENABLE_BFCM_SKETCH:
             self.bfcm_sketch = BFCMSketch()
-            # 用于模拟控制平面接收到的 FlowID 计数
             self.bfcm_control_plane_counts: Dict[Tuple[int, int], int] = {}
         else:
             self.bfcm_sketch = None
             self.bfcm_control_plane_counts = {}
 
-        # 新增: 上帝视角的真实值记录账本
         self.true_flow_counts: Dict[Tuple[int, int], int] = {}
 
 
     def add_interface(self, port: int, ip: str, link: 'Link'):
         if port in [iface['port'] for iface in self.interfaces]:
-             print(f"警告: 尝试为节点 {self.node_id} 添加已存在的端口 {port}。")
+             print(f"Warning: Attempting to add an existing port {port} to node {self.node_id}.")
              new_port = port
              while new_port in [iface['port'] for iface in self.interfaces]:
                  new_port += 1
-             print(f"  -> 使用新端口号 {new_port} 代替。")
+             print(f"  -> Using new port number {new_port} instead.")
              port = new_port
         self.interfaces.append({"port": port, "ip": Ipv4Address(ip), "link": link})
         neighbor = link.node1 if link.node2 == self else link.node2
@@ -325,7 +286,6 @@ class Node:
 
 
 class Link:
-    """模拟点对点链路，包含双向出口队列"""
     def __init__(self, node1: Node, node2: Node, data_rate_mbps: float, delay_s: float, queue_size_packets: int):
         self.node1 = node1; self.node2 = node2
         self.data_rate_bps = data_rate_mbps * 1e6
@@ -337,12 +297,12 @@ class Link:
     def get_queue_and_busy_flag(self, source_node: Node) -> Tuple[Deque[Packet], bool]:
         if source_node == self.node1: return self.queue1_2, self.is_busy1_2
         elif source_node == self.node2: return self.queue2_1, self.is_busy2_1
-        else: raise ValueError(f"源节点 {source_node.node_id} 不属于此链路...")
+        else: raise ValueError(f"Source node {source_node.node_id} does not belong to this link...")
 
     def set_busy_flag(self, source_node: Node, busy: bool):
         if source_node == self.node1: self.is_busy1_2 = busy
         elif source_node == self.node2: self.is_busy2_1 = busy
-        else: raise ValueError(f"源节点 {source_node.node_id} 不属于此链路...")
+        else: raise ValueError(f"Source node {source_node.node_id} does not belong to this link...")
 
     def get_other_node(self, node: Node) -> Node:
         return self.node2 if node == self.node1 else self.node1
@@ -354,7 +314,6 @@ class Link:
         return packets
 
 class Ipv4AddressHelper:
-    """模拟 IP 地址分配"""
     def __init__(self, base: str, mask: str):
         self.base_ip = [int(x) for x in base.split(".")]
         self.mask = [int(x) for x in mask.split(".")]
@@ -397,7 +356,6 @@ class Ipv4AddressHelper:
          raise RuntimeError(f"Failed to assign IP address after maximum retries for link {link.node1.node_id}-{link.node2.node_id}.")
 
 class Simulator:
-    """模拟仿真器"""
     current_time: float = config.GLOBAL_START_TIME
     events: List[Tuple[float, int, int, Callable, tuple]] = []
     stop_time: float = config.SIMULATION_END_TIME
@@ -418,20 +376,20 @@ class Simulator:
 
     @classmethod
     def run(cls):
-        print(f"--- 仿真开始 (持续时间: {cls.stop_time - cls.current_time}s, 流量/拓扑更新停止于: {config.TRAFFIC_STOP_TIME}s) ---")
+        print(f"--- Simulation started (Duration: {cls.stop_time - cls.current_time}s, Traffic/Topology updates stop at: {config.TRAFFIC_STOP_TIME}s) ---")
         while cls.events:
             time, prio, count, callback, args = heapq.heappop(cls.events)
             if time >= cls.stop_time - 1e-9: cls.events = []; break
             if time > cls.current_time: cls.current_time = time
             try: callback(*args)
             except Exception as e:
-                print(f"错误: 事件回调 {callback.__name__} 在时间 {cls.current_time:.9f} 发生异常! Error: {e}")
+                print(f"Error: Event callback {callback.__name__} raised an exception at time {cls.current_time:.9f}! Error: {e}")
                 traceback.print_exc()
         cls.current_time = min(cls.current_time, cls.stop_time)
-        print(f"--- 仿真结束于 {cls.current_time:.6f}s ---")
+        print(f"--- Simulation ended at {cls.current_time:.6f}s ---")
 
     @classmethod
     def now(cls) -> float: return cls.current_time
 
     @classmethod
-    def stop_simulation(cls): print("--- 仿真被强制停止 ---"); cls.events = []
+    def stop_simulation(cls): print("--- Simulation was forcibly stopped ---"); cls.events = []
