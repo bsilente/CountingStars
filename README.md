@@ -15,29 +15,37 @@ Run the following command in the root directory to configure the third-party lib
 ```
 pip install -r requirements.txt
 ```
+
 ## Data Preparation
 We have securely hosted the complete dataset on the **Zenodo** platform and, through its controlled access mechanism, provided researchers with legitimate needs with access to it.
 
 ### How to obtain data
-1.  Visit our Zenodo dataset page: [https://doi.org/10.5281/zenodo.16530984](https://doi.org/10.5281/zenodo.16530984) 
+1.  Visit our Zenodo dataset page: [https://doi.org/10.5281/zenodo.16536868](https://doi.org/10.5281/zenodo.16536868) 
 2. Click the **`Request access`** button on the page, and briefly describe your identity and purpose.
 3. Please place the downloaded data files in the root directory of the project.
 
 # 🔬 Experimental Replication
 ## Run a single experiment
 Specify the name of the experiment to be run using the -e or --experiment parameter.
-
-### e.g. Run the experiment "Iridium constellation under a 0.5 load"
-
-```
-python run_experiments.py -e Iridium_load_0_5
-```
-
-## Adjust the key parameters (memory size)
-One of the key comparison dimensions in the paper is the performance of each algorithm under different memory sizes. You can override the memory settings in the configuration file through the --kb parameter in the command line.
 <br>
 <br>
 For the experiments related to the Starlink constellation, we recommend running them on a computer with at least ``32GB`` of memory.
+
+### e.g. Run the experiment "Iridium constellation under a 0.1 load"
+
+```
+python run_experiments.py -e Iridium_load_0_1
+```
+
+### e.g. Run the experiment "Starlink constellation under a 0.5 load"
+
+```
+python run_experiments.py -e Starlink_load_0_5
+```
+
+## Adjust the memory size
+One of the key comparison dimensions in the paper is the performance of each algorithm under different memory sizes. You can override the memory settings in the configuration file through the --kb parameter in the command line.
+
 ## e.g. In the Starlink_load_0_9 experiment, each node was allocated a total memory capacity of 256 KB.
 
 ```
@@ -46,4 +54,6 @@ python run_experiments.py -e Starlink_load_0_9 --kb 256
 
 # 📊 Output Description
 Terminal output: During the simulation process, a progress bar will be displayed. After the simulation is completed, overall statistics and performance evaluation results (such as ARE, WMRE, RE, etc.) for each algorithm will be printed.
+
+Loading…
 
