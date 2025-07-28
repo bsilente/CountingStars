@@ -7,7 +7,7 @@ This is a repository of the simulator used in the paper "CountingStars: Low-over
 This simulator is developed using the Python programming language and is specifically designed for the Windows operating system.
 ## Environment requirements
 * Python (3.7 or higher)
-* pip package manager
+* Pip package manager
 
 ## Installing Project Dependencies
 Run the following command in the root directory to configure the third-party libraries（It is recommended to operate in a virtual environment）:
