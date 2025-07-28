@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-We have securely hosted the complete dataset on the **Zenodo** platform,and we will continue to update the dataset in the future.
+We have securely hosted the complete dataset on the **Zenodo** platform, and we will continue to update the dataset in the future.
 
 ### How to obtain data
 1.  Visit our Zenodo dataset page: [https://doi.org/10.5281/zenodo.16536868](https://doi.org/10.5281/zenodo.16536868) 
