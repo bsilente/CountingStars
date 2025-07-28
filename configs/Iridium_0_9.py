@@ -39,9 +39,9 @@ BFCM_SKETCH_CM_HASH_FUNCTIONS = 4
 BFCM_SKETCH_COUNTER_SIZE_BYTES = 4
 
 # --- Adjacency matrix ---
-ADJACENCY_MATRIX_DIR = "Adjacency_matrices_time_yixing"
+ADJACENCY_MATRIX_DIR = "Adjacency_matrices_time_iridium"
 ADJACENCY_MATRIX_TEMPLATE = "{}.csv"
 
 # --- Traffic matrix ---
-TRAFFIC_MATRIX_DIR = f"demand_yixing_0.9"
+TRAFFIC_MATRIX_DIR = f"demand_iridium_0.9"
 TRAFFIC_MATRIX_TEMPLATE = "{}.csv"
