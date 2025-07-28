@@ -35,7 +35,9 @@ python run_experiments.py -e Iridium_load_0_5
 
 ## Adjust the key parameters (memory size)
 One of the key comparison dimensions in the paper is the performance of each algorithm under different memory sizes. You can override the memory settings in the configuration file through the --kb parameter in the command line.
-<br>For the experiments related to the Starlink constellation, we recommend running them on a computer with at least ``32GB`` of memory.
+<br>
+<br>
+For the experiments related to the Starlink constellation, we recommend running them on a computer with at least ``32GB`` of memory.
 ## e.g. In the Starlink_load_0_9 experiment, each node was allocated a total memory capacity of 256 KB.
 
 ```
