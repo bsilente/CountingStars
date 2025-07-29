@@ -60,4 +60,4 @@ Under the ``pic`` directory, run the following command:
 ```
 python plot_generator.py
 ```
-This command will utilize our test results to create a .png file for each set of experiments.
+This command will utilize our test results to create a ``.png`` file for each set of experiments.
