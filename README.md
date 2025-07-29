@@ -1,9 +1,9 @@
 <h1>CountingStars</h1>
 
-# 📝 Project Introduction
-This is a repository of the simulator used in the paper "CountingStars: Low-overhead Network-wide Measurement in LEO Mega-constellation Networks" (here insert paper link).  The repository contains the simulator as well as the scripts used to create the graphs displayed in the evaluation section.
+# :books: Project Introduction
+This is a repository of the simulator used in the paper "CountingStars: Low-overhead Network-wide Measurement in LEO Mega-constellation Networks".  The repository contains the simulator as well as the scripts used to create the graphs displayed in the evaluation section.
 
-# 🚀 Getting Started
+# :rocket: Getting Started
 This simulator is developed using the Python programming language and is specifically designed for the Windows operating system.
 ## Environment requirements
 * Python (3.7 or higher)
@@ -23,7 +23,7 @@ We have securely hosted the complete dataset on the **Zenodo** platform, and we 
 1.  Visit our Zenodo dataset page: [https://doi.org/10.5281/zenodo.16536868](https://doi.org/10.5281/zenodo.16536868) 
 2. Please place the downloaded data files in the root directory of the project.
 
-# 🔬 Experimental Replication
+# :satellite: Experimental Replication
 ## Run a single experiment
 Specify the name of the experiment to be run using the -e or --experiment parameter.
 <br>
@@ -45,13 +45,19 @@ python run_experiments.py -e Starlink_load_0_5
 ## Adjust the memory size
 One of the key comparison dimensions in the paper is the performance of each algorithm under different memory sizes. You can override the memory settings in the configuration file through the --kb parameter in the command line.
 
-## e.g. In the Starlink_load_0_9 experiment, each node was allocated a total memory capacity of 256 KB.
+### e.g. In the Starlink_load_0_9 experiment, each node was allocated a total memory capacity of 256 KB.
 
 ```
 python run_experiments.py -e Starlink_load_0_9 --kb 256
 ```
 
-# 📊 Output Description
-Terminal output: During the simulation process, a progress bar will be displayed. After the simulation is completed, overall statistics and performance evaluation results (such as ARE, WMRE, RE, etc.) for each algorithm will be printed.
+# :bar_chart: Output Description
+## Terminal output
+During the simulation process, a progress bar will be displayed. After the simulation is completed, overall statistics and performance evaluation results (such as ARE, WMRE, RE, etc.) for each algorithm will be printed.
 
-
+## To recreate Figures of section
+Under the ``pic`` directory, run the following command:
+```
+python plot_generator.py
+```
+This command will utilize our test results to create a .png file for each set of experiments.
