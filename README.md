@@ -25,21 +25,23 @@ We have securely hosted the complete dataset on the **Zenodo** platform, and we 
 
 # :satellite: Experimental Replication
 ## Run a single experiment
-Under the ``Simulation Platform`` directory, specify the name of the experiment to be run using the -e or --experiment parameter.
-<br>
-<br>
+Under the ``Simulation Platform`` directory, specify the name of the experiment to be run using the ``-e`` or ``--experiment`` parameter.
+
+Experiments that currently support replication:
+
+* Iridium constellation under a 0.1 load: ``Iridium_load_0_1``
+* Iridium constellation under a 0.5 load: ``Iridium_load_0_5``
+* Iridium constellation under a 0.9 load: ``Iridium_load_0_9``
+* Starlink constellation under a 0.1 load: ``Starlink_load_0_1``
+* Starlink constellation under a 0.5 load: ``Starlink_load_0_5``
+* Starlink constellation under a 0.9 load: ``Starlink_load_0_9``
+
 For the experiments related to the Starlink constellation, we recommend running them on a computer with at least ``32GB`` of memory.
 
 ### e.g. Run the experiment "Iridium constellation under a 0.1 load"
 
 ```
 python run_experiments.py -e Iridium_load_0_1
-```
-
-### e.g. Run the experiment "Starlink constellation under a 0.5 load"
-
-```
-python run_experiments.py -e Starlink_load_0_5
 ```
 
 ## Adjust the memory size
