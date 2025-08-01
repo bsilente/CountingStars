@@ -21,7 +21,7 @@ We have securely hosted the complete dataset on the **Zenodo** platform, and we 
 
 ### How to obtain data
 1.  Visit our Zenodo dataset page: [https://doi.org/10.5281/zenodo.16536868](https://doi.org/10.5281/zenodo.16536868) 
-2. Please place the downloaded data files in the root directory of the project.
+2. Please place the downloaded data files in the ``Simulation Platform`` directory of the project.
 
 # :satellite: Experimental Replication
 ## Run a single experiment
