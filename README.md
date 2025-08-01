@@ -57,7 +57,7 @@ python run_experiments.py -e Starlink_load_0_9 --kb 256
 ## Terminal output
 During the simulation process, a progress bar will be displayed. After the simulation is completed, overall statistics and performance evaluation results (such as ARE, WMRE, RE, etc.) for each algorithm will be printed.
 
-## To recreate Figures of section
+## To recreate figures of section
 Under the ``pic`` directory, run the following command:
 ```
 python plot_generator.py
