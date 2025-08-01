@@ -25,7 +25,7 @@ We have securely hosted the complete dataset on the **Zenodo** platform, and we 
 
 # :satellite: Experimental Replication
 ## Run a single experiment
-Specify the name of the experiment to be run using the -e or --experiment parameter.
+Under the ``Simulation Platform`` directory, specify the name of the experiment to be run using the -e or --experiment parameter.
 <br>
 <br>
 For the experiments related to the Starlink constellation, we recommend running them on a computer with at least ``32GB`` of memory.
