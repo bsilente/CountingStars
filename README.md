@@ -1,7 +1,9 @@
 <h1>CountingStars</h1>
 
 # :books: Project Introduction
-This is a repository of the simulator used in the paper "CountingStars: Low-overhead Network-wide Measurement in LEO Mega-constellation Networks".  The repository contains the simulator as well as the scripts used to create the graphs displayed in the evaluation section.
+This is a repository of the simulator used in the paper "CountingStars: Low-overhead Network-wide Measurement in LEO Mega-constellation Networks". 
+https://arxiv.org/abs/2508.13512
+The repository contains the simulator as well as the scripts used to create the graphs displayed in the evaluation section.
 
 # :rocket: Getting Started
 This simulator is developed using the Python programming language and is specifically designed for the Windows operating system.
