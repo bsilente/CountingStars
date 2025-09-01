@@ -10,6 +10,7 @@ This simulator is developed using the Python programming language and is specifi
 * Python (3.7 or higher)
 * Pip package manager
 
+
 ## Installing Project Dependencies
 Run the following command in the root directory to configure the third-party libraries（It is recommended to operate in a virtual environment）:
 
